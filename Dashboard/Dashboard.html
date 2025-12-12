@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Velocidade Comercial - CARRIS</title>
+
+
+    <link rel="icon" href="Favicon.svg" type="image/svg+xml">
+
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+
+    <link rel="stylesheet" href="style.css">
+
+
+
+</head>
+
+<body>
+
+    <!-- header -->
+    <header class="cabecalho-principal">
+        <div class="acoes-cabecalho-esquerda">
+            <button class="btn btn-filtros" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas-filtros"
+                aria-controls="offcanvas-filtros">
+                <i class="bi bi-funnel-fill"></i>
+            </button>
+        </div>
+        <img src="LogoCarris.png" alt="CARRIS" class="logotipo-cabecalho">
+        <div class="acoes-cabecalho-direita">
+            <label class="seletor-tema">
+                <input type="checkbox" id="theme-toggle">
+                <span class="deslizador-tema"></span>
+            </label>
+        </div>
+    </header>
+
+    <!-- homepage -->
+    <main class="conteudo-principal" id="pagina-inicial">
+        <div id="connection-error" class="alert alert-danger d-none mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Erro:</strong> Inicie o app.py.
+        </div>
+        <!-- cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+                <div class="card cartao-kpi">
+                    <div class="kpi-content">
+                        <div class="kpi-icon icon-total"><i class="bi bi-signpost-split-fill"></i></div>
+                        <div>
+                            <div class="valor-kpi" id="total-routes">--</div>
+                            <div class="rotulo-kpi">Carreiras Ativas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+                <div class="card cartao-kpi">
+                    <div class="kpi-content">
+                        <div class="kpi-icon icon-fast"><i class="bi bi-speedometer2"></i></div>
+                        <div>
+                            <div class="valor-kpi" id="fast-routes-kpi">--</div>
+                            <div class="rotulo-kpi">Rápidas (>20 <span class="kmh">km/h</span>)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+                <div class="card cartao-kpi">
+                    <div class="kpi-content">
+                        <div class="kpi-icon icon-slow"><i class="bi bi-hourglass-split"></i></div>
+                        <div>
+                            <div class="valor-kpi" id="slow-routes-kpi">--</div>
+                            <div class="rotulo-kpi">Lentas (<10 <span class="kmh">km/h</span>)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
+                <div class="card cartao-kpi">
+                    <div class="kpi-content">
+                        <div class="kpi-icon icon-avg"><i class="bi bi-graph-up-arrow"></i></div>
+                        <div>
+                            <div class="valor-kpi" id="avg-speed">--</div>
+                            <div class="rotulo-kpi">Velocidade Média</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- tabelas -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="card cartao-ranking">
+                    <div class="card-header justify-content-center"><i class="bi bi-trophy-fill text-warning"></i>
+                        <h5 class="titulo-ranking">Carreiras Mais Rápidas</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="tabela-ranking">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>CARREIRA</th>
+                                    <th class="text-end">VELOCIDADE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fastest-routes-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card cartao-ranking">
+                    <div class="card-header justify-content-center"><i class="bi bi-cone-striped text-danger"></i>
+                        <h5 class="titulo-ranking">Carreiras Mais Lentas</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="tabela-ranking">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>CARREIRA</th>
+                                    <th class="text-end">VELOCIDADE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="slowest-routes-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- análise por carreiras -->
+    <main class="conteudo-principal d-none" id="pagina-rotas">
+        <div id="analise-rota-placeholder" class="placeholder-pagina">
+            <i class="bi bi-bus-front"></i>
+            <h4>Análise por Carreiras</h4>
+            <p>Para começar, use os <strong>Filtros</strong> e selecione uma carreira para ver a sua análise detalhada.
+            </p>
+        </div>
+        <div id="analise-rota-resultados" class="d-none">
+            <div class="row g-4 mb-4">
+                <div class="col-md-4">
+                    <div class="card cartao-kpi">
+                        <div class="kpi-content">
+                            <div class="kpi-icon icon-avg"><i class="bi bi-speedometer"></i></div>
+                            <div>
+                                <div class="valor-kpi" id="detalhe-velocidade-atual">--</div>
+                                <div class="rotulo-kpi">Velocidade da Carreira</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card cartao-kpi">
+                        <div class="kpi-content">
+                            <div class="kpi-icon icon-total"><i class="bi bi-distribute-vertical"></i></div>
+                            <div>
+                                <div class="valor-kpi" id="detalhe-comparacao-global">--</div>
+                                <div class="rotulo-kpi">vs. Média da Rede</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card cartao-kpi">
+                        <div class="kpi-content">
+                            <div class="kpi-icon icon-slow"><i class="bi bi-hdd-stack-fill"></i></div>
+                            <div>
+                                <div class="valor-kpi" id="detalhe-num-registos">--</div>
+                                <div class="rotulo-kpi">Nº de Registos</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card h-100">
+                <div class="card-body position-relative p-2">
+                    <div class="camada-carregamento">
+                        <div class="spinner"></div>
+                        <p class="mt-3 fw-bold">A carregar mapa...</p>
+                    </div>
+                    <div id="mapa-analise"></div>
+                </div>
+
+                <div class="card" id="map-legend">
+                    <div class="card-body p-3">
+                        <div class="legenda-gradient"></div>
+                        <div class="legenda-labels">
+                            <span>&lt;5 <span class="kmh">km/h</span></span>
+                            <span>5-10 <span class="kmh">km/h</span></span>
+                            <span>10-20 <span class="kmh">km/h</span></span>
+                            <span>20-30 <span class="kmh">km/h</span></span>
+                            <span>&gt;30 <span class="kmh">km/h</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- código p página dos gráficos -->
+    <main class="conteudo-principal d-none" id="pagina-graficos">
+        <div id="graficos-placeholder" class="placeholder-pagina">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            <h4>Análise Gráfica</h4>
+            <p>Para visualizar os gráficos, abra o menu de <strong>Filtros</strong> e selecione a carreira que deseja
+                analisar.</p>
+        </div>
+        <div id="graficos-resultados" class="d-none">
+            <div class="camada-carregamento">
+                <div class="spinner"></div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header justify-content-center">Análise Por Dia da Semana</div>
+                        <div class="card-body chart-container"><canvas id="grafico-dia-semana"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card">
+                        <div class="card-header justify-content-center">Análise Por Período do Dia</div>
+                        <div class="card-body chart-container"><canvas id="grafico-periodo-dia"></canvas></div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header justify-content-center">Análise Por Condições Meteorológicas</div>
+                        <div class="card-body chart-container"><canvas id="grafico-meteorologia"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- barra de navegação inferior -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-link active" data-page="pagina-inicial"><i class="bi bi-house-door-fill"></i><span>Página
+                Inicial</span></a>
+        <a href="#" class="nav-link" data-page="pagina-rotas"><i class="bi bi-bus-front"></i><span>Carreiras</span></a>
+        <a href="#" class="nav-link" data-page="pagina-graficos"><i
+                class="bi bi-bar-chart-line-fill"></i><span>Gráficos</span></a>
+    </nav>
+
+    <!-- offcanvas para os filtros -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvas-filtros" aria-labelledby="offcanvasFiltrosLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasFiltrosLabel"><i class="bi bi-funnel-fill me-2"></i>Filtragem de
+                Dados</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <form id="filter-form">
+                <div class="grupo-filtros">
+                    <label class="rotulo-filtros"><i class="bi bi-calendar-week me-2"></i>Dia da Semana</label>
+                    <select id="dia_semana" class="form-select">
+                        <option value="">Todos os dias</option>
+                        <option value="0">Segunda-feira</option>
+                        <option value="1">Terça-feira</option>
+                        <option value="2">Quarta-feira</option>
+                        <option value="3">Quinta-feira</option>
+                        <option value="4">Sexta-feira</option>
+                        <option value="5">Sábado</option>
+                        <option value="6">Domingo</option>
+                    </select>
+                </div>
+                <div class="grupo-filtros">
+                    <label class="rotulo-filtros">
+                        <i class="bi bi-clock me-2"></i>Período do Dia
+                        <i class="bi bi-info-circle-fill ms-1" data-bs-toggle="tooltip" data-bs-placement="top"
+                            title="Hora de Ponta: 06h00 às 09h59 e 16h00 às 19h59."></i>
+                    </label>
+                    <select id="classe_hora" class="form-select">
+                        <option value="">Todos os períodos</option>
+                        <option value="Pico">Hora de Ponta</option>
+                        <option value="Não Pico">Horário Normal</option>
+                    </select>
+                </div>
+                <div class="grupo-filtros">
+                    <label class="rotulo-filtros"><i class="bi bi-cloud-rain me-2"></i>Meteorologia</label>
+                    <select id="classe_chuva" class="form-select">
+                        <option value="">Todas as condições</option>
+                        <option value="Sem Chuva">Sem Chuva</option>
+                        <option value="Chuva Fraca">Chuva Fraca</option>
+                        <option value="Chuva Moderada">Chuva Moderada</option>
+                        <option value="Chuva Forte">Chuva Forte</option>
+                    </select>
+                </div>
+                <div class="grupo-filtros" id="filtro-carreira-modal">
+                    <label class="rotulo-filtros"><i class="bi bi-bus-front me-2"></i>Carreira</label>
+                    <select id="route_number" class="form-select"></select>
+                </div>
+            </form>
+            <div class="mt-auto pt-4 d-flex justify-content-between align-items-center gap-2">
+                <div class="copyright-offcanvas">&copy; Desenvolvido por Eduardo Duarte, 2025</div>
+                <div class="d-flex gap-2">
+                    <button type="button" id="clear-filters" class="btn btn-light"><i
+                            class="bi bi-arrow-counterclockwise"></i></button>
+                    <button type="button" id="apply-filters" class="btn btn-primary w-100"><i
+                            class="bi bi-check-lg"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
